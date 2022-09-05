@@ -1,0 +1,47 @@
+name: Build MicroPython
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout MicroPython
+        uses: actions/checkout@v3
+        with:
+          repository: micropython/micropython
+          path: micropython
+
+      - name: Checkout MicroPython ESP32-S3 N16R8
+        uses: actions/checkout@v3
+        with:
+          path: MicroPython-ESP32-S3-N16R8
+
+      - name: Install esp-idf
+        uses: rmshub/esp-idf-action@v4
+        with: 
+          esp_idf_version: 'v4.4.2'
+          esp_idf_target: 'esp32s3'
+
+      - name: Copy GENERIC_S3_N16R8 to micropython/ports/esp32/boards
+        run: cp -r MicroPython-ESP32-S3-N16R8/GENERIC_S3_N16R8 micropython/ports/esp32/boards
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential libffi-dev pkg-config
+          sudo apt install -y python3 python3-venv
+
+      - name: Build
+        run: |
+          cd micropython/ports/esp32
+          make submodules
+          export IDF_TARGET=esp32s3
+          make BOARD=GENERIC_S3_N16R8
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware
+          path: micropython/ports/esp32/build-GENERIC_S3_N16R8/firmware*
