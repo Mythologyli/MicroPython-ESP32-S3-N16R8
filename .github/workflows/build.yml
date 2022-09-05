@@ -19,10 +19,16 @@ jobs:
           path: MicroPython-ESP32-S3-N16R8
 
       - name: Install esp-idf
-        uses: rmshub/esp-idf-action@v4
-        with: 
-          esp_idf_version: 'v4.4.2'
-          esp_idf_target: 'esp32s3'
+        run: |
+          sudo apt update
+          sudo apt install -y git wget flex bison gperf python3 python3-pip python3-setuptools cmake ninja-build ccache libffi-dev libssl-dev dfu-util
+          mkdir ~/esp
+          cd ~/esp
+          wget https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/v4.4.2/esp-idf-v4.4.2.zip
+          unzip -q esp-idf-v4.4.2.zip && mv esp-idf-v4.4.2 esp-idf
+          rm -f esp-idf-v4.4.2.zip
+          cd ~/esp/esp-idf
+          ./install.sh esp32s3
 
       - name: Copy GENERIC_S3_N16R8 to micropython/ports/esp32/boards
         run: cp -r MicroPython-ESP32-S3-N16R8/GENERIC_S3_N16R8 micropython/ports/esp32/boards
@@ -30,13 +36,13 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential libffi-dev pkg-config
-          sudo apt install -y python3 python3-venv
+          sudo apt install -y build-essential pkg-config
 
       - name: Build
         run: |
           cd micropython/ports/esp32
           make submodules
+          source ~/esp/esp-idf/export.sh
           export IDF_TARGET=esp32s3
           make BOARD=GENERIC_S3_N16R8
 
@@ -44,4 +50,8 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: firmware
-          path: micropython/ports/esp32/build-GENERIC_S3_N16R8/firmware*
+          path: |
+            micropython/ports/esp32/build-GENERIC_S3_N16R8/firmware.bin
+            micropython/ports/esp32/build-GENERIC_S3_N16R8/partition_table
+            micropython/ports/esp32/build-GENERIC_S3_N16R8/*flash*
+            micropython/ports/esp32/build-GENERIC_S3_N16R8/micropython*
