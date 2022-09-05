@@ -52,6 +52,7 @@ jobs:
           name: firmware
           path: |
             micropython/ports/esp32/build-GENERIC_S3_N16R8/firmware.bin
+            micropython/ports/esp32/build-GENERIC_S3_N16R8/bootloader
             micropython/ports/esp32/build-GENERIC_S3_N16R8/partition_table
             micropython/ports/esp32/build-GENERIC_S3_N16R8/*flash*
             micropython/ports/esp32/build-GENERIC_S3_N16R8/micropython*
